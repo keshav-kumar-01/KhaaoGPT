@@ -38,5 +38,5 @@ APP_NAME = "KhaoGPT"
 APP_VERSION = "1.0.0"
 
 # CORS Origins — Split comma-separated string from env, or use defaults
-CORS_ORIGINS_RAW = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:3000")
+CORS_ORIGINS_RAW = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:3000,https://khaao-gpt-web.vercel.app")
 CORS_ORIGINS = [origin.strip() for origin in CORS_ORIGINS_RAW.split(",") if origin.strip()]
