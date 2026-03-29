@@ -1,6 +1,7 @@
 """
 KhaoGPT Database — SQLAlchemy async setup with SQLite for MVP
 """
+import os
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 from config import DATABASE_URL
@@ -27,5 +28,8 @@ async def get_db():
 
 
 async def init_db():
+    # Only run heavy schema generation on local dev or explicit seeding
+    if os.getenv("VERCEL"):
+        return
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
