@@ -41,16 +41,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=CORS_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Include routers
+# Included routers
 app.include_router(auth_router)
 app.include_router(taste_dna_router)
 app.include_router(chat_router)
