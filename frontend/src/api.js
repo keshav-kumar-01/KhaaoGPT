@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const api = axios.create({
   // Use VITE_API_URL from environment or fallback to production URL
-  baseURL: import.meta.env.VITE_API_URL || 'https://khaao-gpt-api.vercel.app',
+  baseURL: import.meta.env.VITE_API_URL || 'https://khaao-gpt.vercel.app',
   headers: {
     'Content-Type': 'application/json',
   },
