@@ -41,16 +41,18 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS Ultimate Fix — Explicitly whitelist production and local dev
+# CORS — User Requested Fix
+origins = [
+    "https://khaao-gpt-web.vercel.app",
+    "http://localhost:3000",
+    "http://localhost:5173",  # Adding Vite default too
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "https://khaao-gpt-web.vercel.app",
-        "https://khaao-gpt.vercel.app"  # Self-referencing just in case
-    ],
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
