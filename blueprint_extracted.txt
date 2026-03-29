@@ -1,0 +1,1769 @@
+
+KHAO GPT
+Complete Technical Blueprint
+Taste Intelligence · Food Discovery · Community Listings · Direct Ordering
+Delhi NCR — v1.0
+
+
+Attribute
+Detail
+Target Market
+Delhi NCR 
+Tech Stack
+Python · FastAPI · PostgreSQL · Redis · React · Tailwind
+AI / ML
+Custom Taste DNA engine · NLP review mining · Content-based recommender
+Order Flow
+Deep-link redirect to Zomato / Swiggy — no payments handled
+Community Feature
+User-submitted local spots with image verification
+Startup Cost
+₹0 — all free tiers, open datasets, open source tools
+Estimated MVP Timeline
+8–10 weeks solo developer
+
+Table of Contents
+
+Section 01  —  Product Vision & Feature Map
+Section 02  —  Full System Architecture
+Section 03  —  Tech Stack — Every Tool Explained
+Section 04  —  Database Design — Full Schema
+Section 05  —  Taste DNA Engine — Core Algorithm
+Section 06  —  Restaurant Data Pipeline
+Section 07  —  Community Add Feature — Local & Street Food
+Section 08  —  NLP & Review Mining Pipeline
+Section 09  —  Order Bridge — Zomato & Swiggy Deep Links
+Section 10  —  Backend API — Every Endpoint
+Section 11  —  Frontend — Chat UI & Components
+Section 12  —  Delhi NCR Rollout Strategy
+Section 13  —  Free Tools, Datasets & Services
+Section 14  —  Earning & Monetisation Roadmap
+Section 15  —  Week-by-Week Build Plan
+
+SECTION 01
+Product Vision & Feature Map
+What Khao GPT is, what it is not, and every feature explained
+
+The Core Idea
+Khao GPT is a taste-intelligent food discovery assistant for Delhi NCR. Every other platform recommends based on popularity and past order history. Khao GPT recommends based on how your palate actually works — a model called your Taste DNA. It then redirects you directly to Zomato or Swiggy to complete the order. No payments. No delivery. Just the intelligence layer that was missing.
+
+Full Feature List
+
+Feature
+What it does
+Priority
+Taste DNA Quiz
+5-question onboarding that maps your palate across 7 axes (heat, acid, sweet, umami, fat, bitter, texture)
+MVP
+Conversational Chat
+Natural language food requests — mood, craving, budget, location
+MVP
+Taste DNA Matching
+Scores every nearby dish against your personal palate model
+MVP
+First Bite Simulator
+Tells you exactly how a dish will taste for YOUR mouth before you order
+MVP
+Budget Realism Engine
+Shows true all-in cost (dish + delivery fee + taxes) not just listed price
+MVP
+Order Redirect
+One-tap deep link to exact dish on Zomato or Swiggy
+MVP
+Post-meal Rating
+Rate meals to continuously sharpen your Taste DNA
+MVP
+Community Add Feature
+Users submit local cafes, dhabas, street stalls — with photo verification
+MVP
+Stranger Explainer
+Explains unfamiliar dishes using anchors from food you already love
+MVP
+Group Palate Resolver
+Finds restaurants that work for multiple people with different taste profiles
+MVP
+Khao Finds
+Weekly personalised hidden gem recommendation for your area
+MVP
+Taste Journey
+Visual history of your food exploration and how your Taste DNA evolved
+V2
+Mood Intelligence
+Maps emotional/situational context to food states
+V3
+
+🎯  The One-Line Pitch
+Delhi has 50,000 restaurants. You have been eating from the same 20. Khao GPT finds the other 49,980 that match exactly how your mouth works — including the street stall around the corner that no app has ever listed.
+
+SECTION 02
+Full System Architecture
+Every component, how they connect, and why each exists
+
+Architecture Overview
+The system has five layers. Each layer has a single job. They communicate through clean APIs and never directly touch each other's databases.
+
+┌─────────────────────────────────────────────────────────────────┐
+│                        FRONTEND (React)                          │
+│   Chat UI · Taste DNA Quiz · Rec Cards · Community Submit        │
+└─────────────────────────┬───────────────────────────────────────┘
+                           │  HTTPS / REST / WebSocket
+┌─────────────────────────▼───────────────────────────────────────┐
+│                    FASTAPI BACKEND (Python)                       │
+│                                                                   │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐   │
+│  │ Intent Parser│  │ Taste DNA    │  │ Community Verifier    │   │
+│  │ (understand  │  │ Engine       │  │ (image check +        │   │
+│  │  user query) │  │ (score match)│  │  admin approval)      │   │
+│  └──────────────┘  └──────────────┘  └──────────────────────┘   │
+│                                                                   │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐   │
+│  │ Recommender  │  │ First Bite   │  │ Order Bridge         │   │
+│  │ (rank dishes)│  │ (taste desc) │  │ (Zomato/Swiggy links)│   │
+│  └──────────────┘  └──────────────┘  └──────────────────────┘   │
+└──────┬────────────────────┬──────────────────────┬──────────────┘
+       │                    │                       │
+┌──────▼──────┐  ┌──────────▼──────┐  ┌────────────▼─────────────┐
+│ PostgreSQL  │  │  Redis Cache     │  │  Cloudinary / S3         │
+│ Main DB     │  │  Sessions, hot   │  │  Community photo uploads  │
+│             │  │  recs, rate-limit│  │                           │
+└─────────────┘  └─────────────────┘  └──────────────────────────┘
+                                                    │
+                          ┌─────────────────────────▼────────────┐
+                          │         EXTERNAL SERVICES             │
+                          │  Zomato.com  ·  Swiggy.com           │
+                          │  Google Places API  ·  FlavorDB       │
+                          └──────────────────────────────────────┘
+
+Repository Folder Structure
+khao-gpt/
+├── backend/
+│   ├── main.py                    # FastAPI app entry point
+│   ├── database.py                # SQLAlchemy setup + DB connection
+│   ├── config.py                  # Environment variables
+│   │
+│   ├── routers/
+│   │   ├── chat.py                # POST /chat — main conversation endpoint
+│   │   ├── taste_dna.py           # GET/POST /taste-dna — quiz + profile
+│   │   ├── restaurants.py         # GET /restaurants — search + filter
+│   │   ├── dishes.py              # GET /dishes — dish lookup + scoring
+│   │   ├── orders.py              # GET /order-link — build deep links
+│   │   ├── ratings.py             # POST /rating — post-meal feedback
+│   │   └── community.py           # POST /community/submit — user submissions
+│   │
+│   ├── models/                    # SQLAlchemy ORM models
+│   │   ├── user.py
+│   │   ├── restaurant.py
+│   │   ├── dish.py
+│   │   ├── taste_profile.py
+│   │   ├── meal_rating.py
+│   │   └── community_submission.py
+│   │
+│   ├── services/
+│   │   ├── recommender.py         # Core dish ranking algorithm
+│   │   ├── taste_engine.py        # Taste DNA scoring + update
+│   │   ├── first_bite.py          # Personalised taste description generator
+│   │   ├── order_bridge.py        # Zomato + Swiggy URL builder
+│   │   ├── geo_service.py         # Area detection, distance filtering
+│   │   ├── community_service.py   # Submission handling + verification queue
+│   │   └── image_verifier.py      # Photo validation logic
+│   │
+│   └── schemas/                   # Pydantic request/response models
+│       ├── chat.py
+│       ├── taste.py
+│       └── community.py
+│
+├── frontend/
+│   ├── public/
+│   └── src/
+│       ├── components/
+│       │   ├── Chat/
+│       │   │   ├── ChatInterface.jsx
+│       │   │   ├── MessageBubble.jsx
+│       │   │   └── InputBar.jsx
+│       │   ├── Cards/
+│       │   │   ├── RecommendationCard.jsx
+│       │   │   ├── OrderButtons.jsx
+│       │   │   └── FirstBitePanel.jsx
+│       │   ├── TasteDNA/
+│       │   │   ├── Quiz.jsx
+│       │   │   └── ProfileView.jsx
+│       │   └── Community/
+│       │       ├── SubmitSpot.jsx
+│       │       └── PhotoUploader.jsx
+│       ├── pages/
+│       │   ├── Home.jsx
+│       │   ├── Profile.jsx
+│       │   └── Admin.jsx          # Community submission review panel
+│       ├── hooks/
+│       │   ├── useChat.js
+│       │   └── useTasteDNA.js
+│       └── App.jsx
+│
+├── data_pipeline/
+│   ├── scrapers/
+│   │   ├── google_places_seeder.py   # Seed Delhi NCR restaurants via Places API
+│   │   ├── zomato_parser.py          # Parse public Zomato pages
+│   │   └── review_collector.py       # Pull Yelp/Zomato reviews for NLP
+│   ├── nlp/
+│   │   ├── taste_extractor.py        # Extract taste words from reviews
+│   │   └── flavordb_importer.py      # Load FlavorDB into PostgreSQL
+│   └── scripts/
+│       ├── seed_delhi_restaurants.py
+│       └── build_dish_taste_vectors.py
+│
+├── docker-compose.yml
+├── .env.example
+└── README.md
+
+SECTION 03
+Tech Stack
+Every tool, why you are using it, and where to get it free
+
+Layer
+Tool
+Why this one
+Cost
+Backend language
+Python 3.11
+Best ML/NLP ecosystem. FastAPI is the fastest Python API framework.
+Free
+API framework
+FastAPI
+Automatic docs, async support, Pydantic validation built in
+Free
+Main database
+PostgreSQL 15
+Best relational DB. Handles geo-queries with PostGIS extension.
+Free
+Cache layer
+Redis
+Session storage, rate limiting, hot recommendation caching
+Free
+ORM
+SQLAlchemy 2.0
+Maps Python classes to DB tables. Clean, industry standard.
+Free
+Frontend
+React + Vite
+Fastest setup for chat-style apps. Vite makes dev instant.
+Free
+CSS
+Tailwind CSS
+Utility-first. Build fast without writing custom CSS files.
+Free
+HTTP client (FE)
+Axios
+Promise-based API calls from React components
+Free
+Photo storage
+Cloudinary (free tier)
+2GB free storage. Auto image resizing and validation.
+Free
+Auth
+JWT tokens
+Stateless auth. User logs in once, token stored in browser.
+Free
+Containerisation
+Docker + Docker Compose
+Run entire stack (API + DB + Redis) with one command.
+Free
+Hosting (backend)
+Render.com free tier
+Deploy FastAPI for free. 512MB RAM, spins down when idle.
+Free
+Hosting (frontend)
+Vercel free tier
+Deploy React app instantly from GitHub. Custom domain free.
+Free
+DB hosting
+Supabase free tier
+Managed PostgreSQL, 500MB free, dashboard included.
+Free
+NLP library
+spaCy
+Fast NLP for taste word extraction from reviews
+Free
+HTTP scraping
+BeautifulSoup + httpx
+Parse Zomato public pages for restaurant data
+Free
+Task queue
+FastAPI BackgroundTasks
+Run photo verification and Taste DNA updates async
+Free
+
+Local Development Setup — Step by Step
+
+Install Python 3.11 from python.org — use pyenv to manage versions cleanly
+Install Node.js 20 LTS from nodejs.org
+Install Docker Desktop from docker.com — free for personal use
+Install PostgreSQL 15 locally OR use Docker (recommended)
+
+# Clone your repo and set up Python environment
+git clone https://github.com/yourname/khao-gpt
+cd khao-gpt
+ 
+# Backend setup
+cd backend
+python -m venv venv
+source venv/bin/activate        # Windows: venv\Scripts\activate
+pip install fastapi uvicorn sqlalchemy psycopg2-binary
+pip install redis pydantic python-jose passlib
+pip install spacy httpx beautifulsoup4 python-multipart
+ 
+# Download spaCy English model
+python -m spacy download en_core_web_sm
+ 
+# Frontend setup
+cd ../frontend
+npm create vite@latest . -- --template react
+npm install axios tailwindcss @tailwindcss/vite
+ 
+# Start everything with Docker
+cd ..
+docker-compose up -d            # starts PostgreSQL + Redis
+ 
+# Run backend
+cd backend
+uvicorn main:app --reload       # runs at http://localhost:8000
+ 
+# Run frontend
+cd frontend
+npm run dev                     # runs at http://localhost:5173
+
+Free Tip: Use Supabase for your PostgreSQL database instead of running it locally. Sign up free at supabase.com, create a project, and paste the connection string into your .env file. You get a GUI dashboard to view your data too.
+
+SECTION 04
+Database Design — Full Schema
+Every table, every column, every relationship explained
+
+Complete PostgreSQL Schema
+-- ─────────────────────────────────────────────────
+-- USERS
+-- ─────────────────────────────────────────────────
+CREATE TABLE users (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name          VARCHAR(100),
+  email         VARCHAR(200) UNIQUE NOT NULL,
+  phone         VARCHAR(15),
+  area          VARCHAR(100),        -- "Malviya Nagar", "Cyber City"
+  lat           FLOAT,               -- user's saved location
+  lng           FLOAT,
+  is_active     BOOLEAN DEFAULT TRUE,
+  created_at    TIMESTAMP DEFAULT NOW()
+);
+ 
+-- ─────────────────────────────────────────────────
+-- TASTE DNA PROFILE (one row per user)
+-- ─────────────────────────────────────────────────
+CREATE TABLE taste_profiles (
+  user_id           UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  heat_ceiling      FLOAT DEFAULT 5.0,   -- 0=none, 10=extreme
+  sweet_tolerance   FLOAT DEFAULT 5.0,   -- 0=hates sweet, 10=loves sweet
+  acid_affinity     FLOAT DEFAULT 5.0,   -- love of tangy/sour
+  umami_affinity    FLOAT DEFAULT 5.0,   -- love of savoury depth
+  fat_palate        FLOAT DEFAULT 5.0,   -- preference for richness
+  bitter_tolerance  FLOAT DEFAULT 5.0,
+  texture_pref      VARCHAR(50),         -- 'crispy','soft','chewy','mixed'
+  cuisine_scores    JSONB DEFAULT '{}',  -- {"punjabi":8.2, "south_indian":5.1}
+  total_ratings     INT DEFAULT 0,
+  quiz_completed    BOOLEAN DEFAULT FALSE,
+  updated_at        TIMESTAMP DEFAULT NOW()
+);
+ 
+-- ─────────────────────────────────────────────────
+-- RESTAURANTS (curated + community)
+-- ─────────────────────────────────────────────────
+CREATE TABLE restaurants (
+  id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name              VARCHAR(200) NOT NULL,
+  area              VARCHAR(100),
+  address           TEXT,
+  lat               FLOAT,
+  lng               FLOAT,
+  cuisine_tags      TEXT[],           -- ['mughlai','north_indian','street_food']
+  zomato_url        TEXT,
+  swiggy_url        TEXT,
+  google_maps_url   TEXT,
+  avg_cost_two      INT,              -- listed price for two (rupees)
+  avg_delivery_fee  INT DEFAULT 30,
+  platform_fee_est  INT DEFAULT 15,   -- estimated platform/packaging fee
+  rating_zomato     FLOAT,
+  rating_swiggy     FLOAT,
+  is_community      BOOLEAN DEFAULT FALSE,  -- TRUE = user submitted
+  is_verified       BOOLEAN DEFAULT TRUE,   -- FALSE = pending verification
+  source            VARCHAR(50),      -- 'google_places','zomato_scrape','community'
+  is_active         BOOLEAN DEFAULT TRUE,
+  created_at        TIMESTAMP DEFAULT NOW()
+);
+ 
+-- ─────────────────────────────────────────────────
+-- DISHES
+-- ─────────────────────────────────────────────────
+CREATE TABLE dishes (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  restaurant_id   UUID NOT NULL REFERENCES restaurants(id) ON DELETE CASCADE,
+  name            VARCHAR(200) NOT NULL,
+  price           INT,                 -- in rupees
+  cuisine_type    VARCHAR(100),
+  -- Taste vector (0.0 to 10.0 each axis)
+  heat_level      FLOAT DEFAULT 5.0,
+  sweet_level     FLOAT DEFAULT 3.0,
+  acid_level      FLOAT DEFAULT 3.0,
+  umami_level     FLOAT DEFAULT 5.0,
+  fat_level       FLOAT DEFAULT 5.0,
+  bitter_level    FLOAT DEFAULT 2.0,
+  texture_tags    TEXT[],             -- ['crispy','juicy']
+  taste_summary   TEXT,              -- "Creamy, mildly spiced, tomato-forward"
+  key_ingredients TEXT[],            -- ['chicken','cream','tomato','kashmiri chilli']
+  zomato_dish_url TEXT,
+  swiggy_dish_url TEXT,
+  is_veg          BOOLEAN DEFAULT FALSE,
+  is_available    BOOLEAN DEFAULT TRUE,
+  review_count    INT DEFAULT 0,
+  created_at      TIMESTAMP DEFAULT NOW()
+);
+ 
+-- ─────────────────────────────────────────────────
+-- COMMUNITY SUBMISSIONS (local spots)
+-- ─────────────────────────────────────────────────
+CREATE TABLE community_submissions (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  submitted_by    UUID REFERENCES users(id),
+  spot_name       VARCHAR(200) NOT NULL,
+  spot_type       VARCHAR(50),        -- 'restaurant','cafe','dhaba','street_stall','cart'
+  address         TEXT,
+  area            VARCHAR(100),
+  lat             FLOAT,
+  lng             FLOAT,
+  description     TEXT,               -- user's description of the place
+  must_try_dish   VARCHAR(200),       -- the dish they recommend
+  dish_description TEXT,              -- how they describe it
+  taste_tags      TEXT[],            -- ['spicy','crispy','street_style','cheap']
+  approx_price    INT,               -- rough cost in rupees
+  photo_urls      TEXT[],            -- Cloudinary URLs
+  zomato_url      TEXT,              -- optional, if it exists
+  swiggy_url      TEXT,
+  status          VARCHAR(20) DEFAULT 'pending',  -- pending/approved/rejected
+  rejection_reason TEXT,
+  verified_at     TIMESTAMP,
+  created_at      TIMESTAMP DEFAULT NOW()
+);
+ 
+-- ─────────────────────────────────────────────────
+-- MEAL RATINGS (post-order feedback)
+-- ─────────────────────────────────────────────────
+CREATE TABLE meal_ratings (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id         UUID REFERENCES users(id),
+  dish_id         UUID REFERENCES dishes(id),
+  restaurant_id   UUID REFERENCES restaurants(id),
+  rating          SMALLINT CHECK (rating IN (1,2,3)),  -- 1=loved,2=ok,3=disliked
+  platform        VARCHAR(20),        -- 'zomato' or 'swiggy'
+  actual_cost     INT,               -- what user actually paid (crowdsourced cost data)
+  notes           TEXT,
+  rated_at        TIMESTAMP DEFAULT NOW()
+);
+ 
+-- ─────────────────────────────────────────────────
+-- ORDER CLICKS (analytics)
+-- ─────────────────────────────────────────────────
+CREATE TABLE order_clicks (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id         UUID REFERENCES users(id),
+  dish_id         UUID REFERENCES dishes(id),
+  restaurant_id   UUID REFERENCES restaurants(id),
+  platform        VARCHAR(20),
+  clicked_at      TIMESTAMP DEFAULT NOW()
+);
+ 
+-- ─────────────────────────────────────────────────
+-- INDEXES (performance)
+-- ─────────────────────────────────────────────────
+CREATE INDEX idx_restaurants_area ON restaurants(area);
+CREATE INDEX idx_restaurants_community ON restaurants(is_community, is_verified);
+CREATE INDEX idx_dishes_restaurant ON dishes(restaurant_id);
+CREATE INDEX idx_dishes_cuisine ON dishes(cuisine_type);
+CREATE INDEX idx_ratings_user ON meal_ratings(user_id);
+CREATE INDEX idx_submissions_status ON community_submissions(status);
+
+SECTION 05
+Taste DNA Engine
+The quiz, the scoring algorithm, and how it learns from every meal
+
+The 5-Question Quiz Design
+These questions feel conversational. Each maps to one or more taste axes. The goal is 90 seconds to complete — not a form, a quick chat.
+
+Question
+Maps To
+How scored
+You're eating chips. Do you go for: Plain / Masala / Most extreme flavour in the bag?
+heat_ceiling + intensity
+Plain=3, Masala=6, Extreme=9
+Does lemon/imli on food feel like: Brightness / Neutral / Sharp and annoying?
+acid_affinity
+Brightness=8, Neutral=5, Annoying=2
+Rate your relationship with bitterness (coffee, dark chocolate, karela): Love it / Fine / Avoid it
+bitter_tolerance
+Love=8, Fine=5, Avoid=2
+Do you prefer food that feels: Light and clean / Balanced / Rich and filling?
+fat_palate + umami
+Light=2, Balanced=5, Rich=8
+Pick your most-eaten cuisine (10 options shown)
+cuisine_scores baseline
+Selected cuisine gets 8.0, related cuisines 6.0, rest 4.0
+
+Taste DNA Scoring Algorithm
+# backend/services/taste_engine.py
+ 
+from dataclasses import dataclass
+ 
+@dataclass
+class TasteProfile:
+    heat_ceiling: float
+    sweet_tolerance: float
+    acid_affinity: float
+    umami_affinity: float
+    fat_palate: float
+    bitter_tolerance: float
+    cuisine_scores: dict
+ 
+@dataclass
+class Dish:
+    heat_level: float
+    sweet_level: float
+    acid_level: float
+    umami_level: float
+    fat_level: float
+    bitter_level: float
+    cuisine_type: str
+    texture_tags: list
+ 
+ 
+def score_dish_for_user(dish: Dish, profile: TasteProfile) -> float:
+    """
+    Returns 0-100 match score. Higher = better fit for this user's palate.
+    Penalties subtract from 100. Bonuses add up to +20.
+    """
+    score = 100.0
+ 
+    # HEAT — hard ceiling. Exceeding it is a strong penalty.
+    heat_over = dish.heat_level - profile.heat_ceiling
+    if heat_over > 0:
+        score -= heat_over * 9          # -9 pts per unit over ceiling
+    elif heat_over < -3:
+        score -= abs(heat_over) * 1.5  # slight penalty for too mild if user likes heat
+ 
+    # ACID — reward match, penalise mismatch
+    acid_diff = abs(dish.acid_level - profile.acid_affinity)
+    score -= acid_diff * 3.5
+ 
+    # SWEET — reward match
+    sweet_diff = abs(dish.sweet_level - profile.sweet_tolerance)
+    score -= sweet_diff * 3
+ 
+    # FAT / RICHNESS
+    fat_diff = abs(dish.fat_level - profile.fat_palate)
+    score -= fat_diff * 3
+ 
+    # UMAMI — bonus if user loves it and dish has it
+    umami_bonus = (dish.umami_level / 10) * (profile.umami_affinity / 10) * 15
+    score += umami_bonus
+ 
+    # BITTER — only penalise if user avoids it and dish has it
+    if profile.bitter_tolerance < 4 and dish.bitter_level > 5:
+        score -= (dish.bitter_level - 5) * 5
+ 
+    # CUISINE AFFINITY
+    cuisine_score = profile.cuisine_scores.get(dish.cuisine_type, 5.0)
+    score += (cuisine_score - 5) * 2   # -10 to +10 swing
+ 
+    return round(max(0, min(100, score)), 1)
+ 
+ 
+def update_taste_dna(
+    profile: TasteProfile,
+    dish: Dish,
+    rating: int               # 1=loved, 2=okay, 3=disliked
+) -> TasteProfile:
+    """
+    Nudges Taste DNA after each meal rating.
+    Learning rate is small — profile evolves slowly, not jerkily.
+    After 10+ ratings, profile is meaningfully personalised.
+    """
+    lr = 0.06                          # 6% nudge per rating
+    d = 1 if rating == 1 else (-1 if rating == 3 else 0)
+ 
+    def nudge(val, dish_val):
+        return max(0.0, min(10.0, val + d * lr * dish_val))
+ 
+    profile.heat_ceiling    = nudge(profile.heat_ceiling,   dish.heat_level)
+    profile.acid_affinity   = nudge(profile.acid_affinity,  dish.acid_level)
+    profile.fat_palate      = nudge(profile.fat_palate,     dish.fat_level)
+    profile.sweet_tolerance = nudge(profile.sweet_tolerance, dish.sweet_level)
+    profile.umami_affinity  = nudge(profile.umami_affinity, dish.umami_level)
+ 
+    # Cuisine score update
+    current = profile.cuisine_scores.get(dish.cuisine_type, 5.0)
+    profile.cuisine_scores[dish.cuisine_type] = round(
+        max(0, min(10, current + d * 0.4)), 2
+    )
+ 
+    return profile
+
+First Bite Simulator
+This turns a dish's taste vector + user's Taste DNA into a personalised paragraph describing how the food will taste. It uses template logic — no LLM required.
+# backend/services/first_bite.py
+ 
+def generate_first_bite(dish: Dish, profile: TasteProfile) -> str:
+    parts = []
+ 
+    # Opening — texture or dominant flavour
+    if dish.texture_tags:
+        parts.append(f"First thing you will notice is the {dish.texture_tags[0]} texture.")
+ 
+    # Heat personalisation
+    heat_over = dish.heat_level - profile.heat_ceiling
+    if heat_over > 2:
+        parts.append("This runs hotter than your usual comfort zone — the heat builds and lingers.")
+    elif heat_over > 0:
+        parts.append("Slightly above your usual range — you will feel it but it should be manageable.")
+    elif dish.heat_level < 3:
+        parts.append("Very mild on heat — no burn at all.")
+    else:
+        parts.append(f"Heat sits around your {int(dish.heat_level)}/10 comfort level — right in your zone.")
+ 
+    # Acid
+    if dish.acid_level > 6 and profile.acid_affinity > 6:
+        parts.append("The tang is strong and you will love that.")
+    elif dish.acid_level > 6 and profile.acid_affinity < 4:
+        parts.append("There is notable sourness here which may feel sharp for your palate.")
+    elif dish.acid_level < 3:
+        parts.append("No sourness — clean and rounded flavour.")
+ 
+    # Richness
+    if dish.fat_level > 7:
+        parts.append("Rich and heavy — one portion is a full meal.")
+    elif dish.fat_level < 3:
+        parts.append("Light dish — will not leave you feeling heavy.")
+ 
+    # Sweet
+    if dish.sweet_level > 6 and profile.sweet_tolerance < 4:
+        parts.append("Worth noting — this is on the sweeter side, which you typically avoid.")
+ 
+    return " ".join(parts)
+
+SECTION 06
+Restaurant Data Pipeline
+How to build the Delhi NCR restaurant database for free
+
+Free Data Sources
+Source
+What you get
+How to access
+Cost
+Google Places API
+Restaurant name, address, lat/lng, cuisine, phone, hours
+console.cloud.google.com — free tier 28,500 calls/month
+Free
+FlavorDB (IIT Delhi)
+25,000+ ingredient → flavour molecule mappings
+flavordb.cs.iiit.ac.in — direct download
+Free
+Yelp Open Dataset
+7 million restaurant reviews with rich taste language
+kaggle.com/datasets/yelp-dataset
+Free
+Zomato dataset (Kaggle)
+Historical Indian restaurant + review data
+kaggle.com — search 'zomato india'
+Free
+OpenFoodFacts
+3 million food products with full ingredient lists
+world.openfoodfacts.org/data
+Free
+USDA FoodData Central
+Nutritional + ingredient data for 300k foods
+fdc.nal.usda.gov — free API, no key needed
+Free
+Zomato public pages
+Menu items, ratings, public restaurant URLs
+Scrape with BeautifulSoup — personal/research use
+Free
+
+Google Places Seeder Script
+Run this once to populate your restaurant database for Delhi NCR. Uses the free Google Places API.
+# data_pipeline/scrapers/google_places_seeder.py
+ 
+import httpx
+import psycopg2
+import time
+ 
+API_KEY = "YOUR_GOOGLE_PLACES_API_KEY"   # free from console.cloud.google.com
+DB_URL  = "postgresql://user:pass@localhost/khaogpt"
+ 
+# Delhi NCR areas to seed — start with these, expand later
+AREAS = [
+    {"name": "Malviya Nagar Delhi",     "lat": 28.5355, "lng": 77.2100},
+    {"name": "Hauz Khas Delhi",         "lat": 28.5494, "lng": 77.2001},
+    {"name": "Saket Delhi",             "lat": 28.5244, "lng": 77.2090},
+    {"name": "Lajpat Nagar Delhi",      "lat": 28.5677, "lng": 77.2434},
+    {"name": "Connaught Place Delhi",   "lat": 28.6315, "lng": 77.2167},
+    {"name": "Karol Bagh Delhi",        "lat": 28.6519, "lng": 77.1909},
+    {"name": "Cyber City Gurugram",     "lat": 28.4959, "lng": 77.0882},
+    {"name": "Sector 29 Gurugram",      "lat": 28.4677, "lng": 77.0631},
+]
+ 
+def search_restaurants(lat, lng, area_name):
+    url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
+    params = {
+        "location": f"{lat},{lng}",
+        "radius": 1500,
+        "type": "restaurant",
+        "key": API_KEY
+    }
+    resp = httpx.get(url, params=params)
+    return resp.json().get("results", [])
+ 
+def insert_restaurant(conn, place, area_name):
+    cur = conn.cursor()
+    name   = place.get("name", "")
+    lat    = place["geometry"]["location"]["lat"]
+    lng    = place["geometry"]["location"]["lng"]
+    rating = place.get("rating", None)
+    types  = place.get("types", [])
+ 
+    # Map Google types to cuisine tags
+    cuisine_map = {
+        "indian_restaurant": "north_indian",
+        "restaurant": "multi_cuisine",
+        "cafe": "cafe",
+        "bakery": "bakery",
+    }
+    cuisine_tags = [cuisine_map.get(t, t) for t in types if t in cuisine_map]
+ 
+    cur.execute("""
+        INSERT INTO restaurants (name, area, lat, lng, cuisine_tags, rating_zomato, source)
+        VALUES (%s, %s, %s, %s, %s, %s, 'google_places')
+        ON CONFLICT DO NOTHING
+    """, (name, area_name, lat, lng, cuisine_tags, rating))
+    conn.commit()
+ 
+def run():
+    conn = psycopg2.connect(DB_URL)
+    for area in AREAS:
+        print(f"Seeding {area['name']}...")
+        places = search_restaurants(area["lat"], area["lng"], area["name"])
+        for place in places:
+            insert_restaurant(conn, place, area["name"])
+        time.sleep(0.5)                # be polite to the API
+    print(f"Done. Total areas seeded: {len(AREAS)}")
+    conn.close()
+ 
+if __name__ == "__main__":
+    run()
+
+SECTION 07
+Community Add Feature
+Users submit local cafes, dhabas, and street stalls — with photo verification
+
+💡  Why This Feature is Special
+Zomato and Swiggy miss thousands of real local food spots — the chhole bhature stall that has been there for 30 years, the home kitchen that delivers in 2 lanes, the dhaba that only locals know. No algorithm finds these. People do. This feature turns your users into your data team.
+
+How the Flow Works — End to End
+
+USER taps "Add a local spot"
+        │
+        ▼
+Fill in the form:
+  • Spot name (required)
+  • Type: Restaurant / Cafe / Dhaba / Street Stall / Home Kitchen / Cart
+  • Area / Locality (required)
+  • Drop pin on map (Google Maps embed, optional)
+  • Description: "Tell us about this place in your own words"
+  • Must-try dish name (required)
+  • How would you describe that dish's taste?
+  • Rough price for one person (required)
+  • Upload 1–3 photos (required for verification)
+  • Zomato / Swiggy link (optional — if it exists)
+        │
+        ▼
+Photos uploaded to Cloudinary (free tier)
+Submission saved to community_submissions table
+Status = "pending"
+        │
+        ▼
+AUTOMATED CHECKS (instant):
+  ✓ Is location within Delhi NCR bounding box?
+  ✓ Are photos actual food/restaurant images? (basic check)
+  ✓ Is name not a duplicate of existing DB entry?
+  ✓ Is description at least 20 words?
+        │
+        ├── FAIL any check → rejected instantly, user told why
+        │
+        ▼
+QUEUE for admin review (your simple dashboard)
+        │
+        ▼
+YOU (admin) reviews in dashboard:
+  • See photos
+  • See description
+  • One-click Approve / Reject
+  • If approve: mark verified, convert to restaurant record
+  • If reject: send reason to user
+        │
+        ▼
+IF APPROVED:
+  • Restaurant added to main restaurants table
+    with is_community=TRUE, is_verified=TRUE
+  • Submitter gets notification + "Local Scout" badge
+  • Dish added to dishes table with their taste description
+  • Now recommends to users who match the taste profile
+
+Community Submission API — Backend
+# backend/routers/community.py
+ 
+from fastapi import APIRouter, UploadFile, File, Form, Depends
+from typing import List, Optional
+from services.community_service import process_submission
+from services.image_verifier import validate_photos
+ 
+router = APIRouter(prefix="/community", tags=["community"])
+ 
+@router.post("/submit")
+async def submit_spot(
+    spot_name:        str = Form(...),
+    spot_type:        str = Form(...),      # restaurant/cafe/dhaba/street_stall
+    area:             str = Form(...),
+    address:          Optional[str] = Form(None),
+    lat:              Optional[float] = Form(None),
+    lng:              Optional[float] = Form(None),
+    description:      str = Form(...),
+    must_try_dish:    str = Form(...),
+    dish_description: str = Form(...),
+    approx_price:     int = Form(...),
+    taste_tags:       Optional[str] = Form(None),  # comma-separated
+    zomato_url:       Optional[str] = Form(None),
+    swiggy_url:       Optional[str] = Form(None),
+    photos:           List[UploadFile] = File(...),
+    current_user = Depends(get_current_user)
+):
+    # 1. Validate photos (1 to 3 required)
+    if len(photos) < 1 or len(photos) > 3:
+        return {"error": "Please upload 1 to 3 photos"}
+ 
+    # 2. Delhi NCR bounding box check
+    if lat and lng:
+        if not (28.4 <= lat <= 28.9 and 76.8 <= lng <= 77.5):
+            return {"error": "Location must be within Delhi NCR"}
+ 
+    # 3. Upload photos to Cloudinary, get URLs
+    photo_urls = await upload_photos_to_cloudinary(photos)
+ 
+    # 4. Check for duplicates
+    if await is_duplicate(spot_name, area):
+        return {"error": "This spot may already be in our list. Check existing listings."}
+ 
+    # 5. Save submission
+    tags = taste_tags.split(",") if taste_tags else []
+    submission = await save_submission({
+        "submitted_by":    current_user.id,
+        "spot_name":       spot_name,
+        "spot_type":       spot_type,
+        "area":            area,
+        "address":         address,
+        "lat":             lat,
+        "lng":             lng,
+        "description":     description,
+        "must_try_dish":   must_try_dish,
+        "dish_description": dish_description,
+        "approx_price":    approx_price,
+        "taste_tags":      tags,
+        "photo_urls":      photo_urls,
+        "zomato_url":      zomato_url,
+        "swiggy_url":      swiggy_url,
+        "status":          "pending",
+    })
+ 
+    return {
+        "message": "Thank you! Your spot is under review. We usually verify within 24 hours.",
+        "submission_id": str(submission.id)
+    }
+ 
+ 
+@router.get("/pending")             # ADMIN ONLY
+async def get_pending_submissions(admin = Depends(require_admin)):
+    return await fetch_pending_submissions()
+ 
+ 
+@router.post("/{submission_id}/approve")   # ADMIN ONLY
+async def approve_submission(submission_id: str, admin = Depends(require_admin)):
+    """
+    Converts a community submission into a real restaurant + dish record.
+    """
+    sub = await get_submission(submission_id)
+ 
+    # Create restaurant record
+    restaurant = await create_restaurant({
+        "name":          sub.spot_name,
+        "area":          sub.area,
+        "address":       sub.address,
+        "lat":           sub.lat,
+        "lng":           sub.lng,
+        "cuisine_tags":  sub.taste_tags,
+        "zomato_url":    sub.zomato_url,
+        "swiggy_url":    sub.swiggy_url,
+        "avg_cost_two":  sub.approx_price * 2,
+        "is_community":  True,
+        "is_verified":   True,
+        "source":        "community",
+    })
+ 
+    # Create dish record — taste vector inferred from taste_tags
+    dish_vector = infer_taste_vector(sub.taste_tags)
+    await create_dish({
+        "restaurant_id":  restaurant.id,
+        "name":           sub.must_try_dish,
+        "price":          sub.approx_price,
+        "taste_summary":  sub.dish_description,
+        "texture_tags":   [t for t in sub.taste_tags if t in TEXTURE_TAGS],
+        **dish_vector
+    })
+ 
+    # Mark submission approved + notify user
+    await mark_approved(submission_id)
+    await notify_user(sub.submitted_by, "Your spot was added! You earned the Local Scout badge.")
+ 
+    return {"message": "Approved and added to database"}
+ 
+ 
+@router.post("/{submission_id}/reject")    # ADMIN ONLY
+async def reject_submission(submission_id: str, reason: str, admin = Depends(require_admin)):
+    await mark_rejected(submission_id, reason)
+    sub = await get_submission(submission_id)
+    await notify_user(sub.submitted_by, f"Your submission was not approved: {reason}")
+    return {"message": "Rejected"}
+
+Taste Tag to Taste Vector Inference
+When a user submits a community spot, they describe it in taste tags. We need to convert those tags to the numerical taste vector that the recommender uses.
+# backend/services/community_service.py
+ 
+TASTE_TAG_MAP = {
+    # Heat
+    "spicy":         {"heat_level": 7.5},
+    "very spicy":    {"heat_level": 9.0},
+    "mild":          {"heat_level": 2.0},
+    "no heat":       {"heat_level": 0.0},
+    # Acid
+    "tangy":         {"acid_level": 7.5},
+    "sour":          {"acid_level": 8.0},
+    "fresh":         {"acid_level": 5.0},
+    # Fat
+    "rich":          {"fat_level": 8.0},
+    "heavy":         {"fat_level": 8.5},
+    "light":         {"fat_level": 2.5},
+    "oily":          {"fat_level": 8.0},
+    # Sweet
+    "sweet":         {"sweet_level": 8.0},
+    "not sweet":     {"sweet_level": 1.5},
+    # Umami
+    "umami":         {"umami_level": 8.0},
+    "savoury":       {"umami_level": 7.0},
+    "smoky":         {"umami_level": 7.5},
+    # Texture
+    "crispy":        {"texture_tags": ["crispy"]},
+    "crunchy":       {"texture_tags": ["crunchy"]},
+    "soft":          {"texture_tags": ["soft"]},
+    "chewy":         {"texture_tags": ["chewy"]},
+    "street_style":  {},
+    "cheap":         {},
+    "filling":       {"fat_level": 7.0, "umami_level": 6.0},
+}
+ 
+TEXTURE_TAGS = ["crispy", "crunchy", "soft", "chewy", "fluffy", "juicy"]
+ 
+def infer_taste_vector(taste_tags: list) -> dict:
+    """
+    Converts user's taste tags into a numeric taste vector.
+    Averages overlapping values when multiple tags map to same axis.
+    """
+    axis_values = {
+        "heat_level": [], "sweet_level": [], "acid_level": [],
+        "umami_level": [], "fat_level": [], "bitter_level": []
+    }
+    texture = []
+ 
+    for tag in taste_tags:
+        mapping = TASTE_TAG_MAP.get(tag.lower().strip(), {})
+        for axis, val in mapping.items():
+            if axis == "texture_tags":
+                texture.extend(val)
+            elif axis in axis_values:
+                axis_values[axis].append(val)
+ 
+    result = {}
+    for axis, vals in axis_values.items():
+        result[axis] = round(sum(vals) / len(vals), 1) if vals else 5.0
+ 
+    result["texture_tags"] = texture
+    return result
+
+🏅  Community Gamification
+Give users who submit verified spots a 'Local Scout' badge on their profile. After 3 verified submissions they become 'Khao Scout' — a visible status. This costs you nothing and creates a strong incentive to contribute. Delhi loves being the person who knows the hidden spot.
+
+SECTION 08
+NLP & Review Mining Pipeline
+Extracting taste intelligence from thousands of reviews automatically
+
+How Taste Vectors Get Built From Reviews
+Each dish's taste vector (heat_level, acid_level etc.) is not entered manually. It is computed by mining hundreds of reviews for that dish using NLP, then averaging the taste signals. This is the core data work that makes the First Bite Simulator accurate.
+
+# data_pipeline/nlp/taste_extractor.py
+ 
+import spacy
+from collections import defaultdict
+ 
+nlp = spacy.load("en_core_web_sm")
+ 
+# Taste word → axis + direction + strength
+TASTE_LEXICON = {
+    # HEAT
+    "spicy":       ("heat_level", +1, 7.0),
+    "very spicy":  ("heat_level", +1, 9.0),
+    "fiery":       ("heat_level", +1, 9.5),
+    "mild":        ("heat_level", -1, 2.0),
+    "not spicy":   ("heat_level", -1, 1.5),
+    "no heat":     ("heat_level", -1, 0.5),
+    "moderate heat": ("heat_level", +1, 5.5),
+    # ACID
+    "tangy":       ("acid_level", +1, 7.5),
+    "sour":        ("acid_level", +1, 8.0),
+    "tart":        ("acid_level", +1, 7.0),
+    "zesty":       ("acid_level", +1, 6.5),
+    "fresh":       ("acid_level", +1, 5.0),
+    # SWEET
+    "sweet":       ("sweet_level", +1, 7.5),
+    "sugary":      ("sweet_level", +1, 8.5),
+    "not sweet":   ("sweet_level", -1, 1.5),
+    "savoury":     ("sweet_level", -1, 2.0),
+    # UMAMI
+    "rich":        ("umami_level", +1, 7.5),
+    "smoky":       ("umami_level", +1, 7.0),
+    "deep":        ("umami_level", +1, 6.5),
+    "umami":       ("umami_level", +1, 9.0),
+    "bland":       ("umami_level", -1, 1.5),
+    # FAT
+    "creamy":      ("fat_level", +1, 7.5),
+    "buttery":     ("fat_level", +1, 8.0),
+    "oily":        ("fat_level", +1, 7.0),
+    "greasy":      ("fat_level", +1, 8.5),
+    "light":       ("fat_level", -1, 2.0),
+    "heavy":       ("fat_level", +1, 8.0),
+    # TEXTURE
+    "crispy":      ("texture", +1, "crispy"),
+    "crunchy":     ("texture", +1, "crunchy"),
+    "soft":        ("texture", +1, "soft"),
+    "tender":      ("texture", +1, "tender"),
+    "chewy":       ("texture", +1, "chewy"),
+    "mushy":       ("texture", +1, "mushy"),
+}
+ 
+def extract_taste_signals(review_text: str) -> dict:
+    """
+    Extracts taste signals from one review.
+    Returns dict of {axis: [values]}
+    """
+    text = review_text.lower()
+    signals = defaultdict(list)
+ 
+    for phrase, (axis, direction, value) in TASTE_LEXICON.items():
+        if phrase in text:
+            if axis == "texture":
+                signals["texture"].append(value)
+            else:
+                signals[axis].append(float(value))
+ 
+    return dict(signals)
+ 
+ 
+def compute_dish_taste_vector(reviews: list) -> dict:
+    """
+    Takes list of review strings for a dish.
+    Returns averaged taste vector across all reviews.
+    """
+    all_signals = defaultdict(list)
+ 
+    for review in reviews:
+        signals = extract_taste_signals(review)
+        for axis, values in signals.items():
+            all_signals[axis].extend(values if isinstance(values, list) else [values])
+ 
+    vector = {}
+    for axis in ["heat_level","sweet_level","acid_level","umami_level","fat_level"]:
+        vals = all_signals.get(axis, [5.0])
+        vector[axis] = round(sum(vals) / len(vals), 2)
+ 
+    # Most common textures
+    textures = all_signals.get("texture", [])
+    from collections import Counter
+    vector["texture_tags"] = [t for t, _ in Counter(textures).most_common(3)]
+ 
+    return vector
+ 
+ 
+# USAGE: Run this for every dish in your DB
+# reviews = fetch_reviews_for_dish("butter_chicken_moti_mahal")
+# vector  = compute_dish_taste_vector(reviews)
+# update_dish_taste_vector(dish_id, vector)
+
+SECTION 09
+Order Bridge
+How Zomato and Swiggy deep links are built and tracked
+
+How Deep Links Work
+Both Zomato and Swiggy use public URL structures for their restaurant and dish pages. You build these URLs from your database and redirect the user. You do not need any API access, no agreements, no API keys for this basic flow.
+
+Platform
+Restaurant URL pattern
+Dish-level URL
+Zomato
+zomato.com/ncr/{restaurant-slug}/order
+Same page — user scrolls or searches for dish
+Swiggy
+swiggy.com/restaurants/{Restaurant-Name}-{area}-rest{id}
+swiggy.com with item pre-highlighted if item ID known
+
+Order Bridge Service
+# backend/services/order_bridge.py
+ 
+import re
+from urllib.parse import quote
+ 
+def build_zomato_url(restaurant_name: str, area: str, stored_url: str = None) -> str:
+    """
+    Returns Zomato order URL.
+    Uses stored URL from DB if available (most accurate).
+    Falls back to constructing from name + area.
+    """
+    if stored_url:
+        return stored_url
+ 
+    # Construct slug from name: "Moti Mahal Delux" → "moti-mahal-delux"
+    slug = re.sub(r'[^a-z0-9]+', '-', restaurant_name.lower()).strip('-')
+    area_slug = re.sub(r'[^a-z0-9]+', '-', area.lower()).strip('-')
+    return f"https://www.zomato.com/ncr/{slug}-{area_slug}/order"
+ 
+ 
+def build_swiggy_url(restaurant_name: str, area: str, stored_url: str = None) -> str:
+    if stored_url:
+        return stored_url
+ 
+    slug = re.sub(r'[^a-z0-9]+', '-', restaurant_name.lower()).strip('-')
+    return f"https://www.swiggy.com/restaurants/{slug}-{area}"
+ 
+ 
+def build_order_links(restaurant, dish=None) -> dict:
+    """
+    Returns both platform links for a recommendation.
+    Also builds a Google Maps link as fallback for community/street spots.
+    """
+    zomato = build_zomato_url(
+        restaurant.name, restaurant.area, restaurant.zomato_url
+    )
+    swiggy = build_swiggy_url(
+        restaurant.name, restaurant.area, restaurant.swiggy_url
+    )
+    maps = (
+        f"https://maps.google.com/?q={quote(restaurant.name + ' ' + restaurant.area)}"
+        if restaurant.lat is None else
+        f"https://maps.google.com/?q={restaurant.lat},{restaurant.lng}"
+    )
+ 
+    return {
+        "zomato":      zomato,
+        "swiggy":      swiggy,
+        "google_maps": maps,          # always available — crucial for street food / community spots
+        "is_community": restaurant.is_community,
+        "note": "Visit in person" if restaurant.is_community and not restaurant.zomato_url else None
+    }
+
+📍  Street Food & Community Spots — Special Handling
+Community-added spots (street stalls, home kitchens, tiny dhabas) often do not exist on Zomato or Swiggy. For these, the Order Bridge shows a Google Maps link and the message 'Visit in person or call ahead'. This is completely valid — it matches why users add these spots in the first place.
+
+Click Tracking — Analytics
+# backend/routers/orders.py
+# Track every click for analytics — which dishes convert, which do not.
+ 
+@router.post("/order-click")
+async def track_order_click(
+    dish_id: str,
+    restaurant_id: str,
+    platform: str,              # 'zomato' or 'swiggy' or 'maps'
+    current_user = Depends(get_current_user)
+):
+    await db.execute("""
+        INSERT INTO order_clicks (user_id, dish_id, restaurant_id, platform)
+        VALUES ($1, $2, $3, $4)
+    """, current_user.id, dish_id, restaurant_id, platform)
+ 
+    # Return the actual redirect URL
+    restaurant = await get_restaurant(restaurant_id)
+    links = build_order_links(restaurant)
+    return {"redirect_url": links[platform]}
+
+SECTION 10
+Backend API — Every Endpoint
+Complete REST API reference for the Khao GPT backend
+
+Method
+Endpoint
+What it does
+Auth required
+POST
+/auth/register
+Create new user account
+No
+POST
+/auth/login
+Login, returns JWT token
+No
+GET
+/auth/me
+Get current user info
+Yes
+GET
+/taste-dna/quiz
+Get the 5 onboarding questions
+No
+POST
+/taste-dna/quiz
+Submit quiz answers, create Taste DNA
+Yes
+GET
+/taste-dna/profile
+Get user's current Taste DNA profile
+Yes
+POST
+/chat
+Main chat endpoint — send message, get recommendations
+Yes
+GET
+/restaurants?area=malviya-nagar
+List restaurants by area
+Yes
+GET
+/restaurants/{id}
+Get single restaurant details
+Yes
+GET
+/dishes/{id}
+Get dish + taste vector + First Bite for current user
+Yes
+GET
+/order-links/{restaurant_id}
+Get Zomato + Swiggy + Maps links
+Yes
+POST
+/order-click
+Track user clicking order link
+Yes
+POST
+/ratings
+Submit post-meal rating (1/2/3)
+Yes
+POST
+/community/submit
+Submit a new local spot with photos
+Yes
+GET
+/community/my-submissions
+See user's own submissions and status
+Yes
+GET
+/admin/community/pending
+List pending community submissions
+Admin
+POST
+/admin/community/{id}/approve
+Approve a submission
+Admin
+POST
+/admin/community/{id}/reject
+Reject with reason
+Admin
+GET
+/user/history
+User's order + rating history
+Yes
+
+Main Chat Endpoint — Core Logic
+# backend/routers/chat.py
+ 
+@router.post("/chat")
+async def chat(request: ChatRequest, current_user = Depends(get_current_user)):
+    """
+    The main endpoint. Takes a natural language food request.
+    Returns top 3 personalised recommendations.
+    """
+    # 1. Parse intent from message
+    intent = parse_intent(request.message)
+    # intent = {
+    #   "area": "Malviya Nagar",
+    #   "budget_max": 300,
+    #   "mood": "spicy",
+    #   "include_community": True    # if user says "local" or "street food"
+    # }
+ 
+    # 2. Fetch user taste profile
+    profile = await get_taste_profile(current_user.id)
+ 
+    # 3. Get candidate restaurants (geo + budget filter)
+    candidates = await get_restaurants(
+        area=intent.get("area"),
+        max_cost=intent.get("budget_max"),
+        include_community=intent.get("include_community", True)
+    )
+ 
+    # 4. Score all dishes across candidates
+    scored_dishes = []
+    for restaurant in candidates:
+        for dish in restaurant.dishes:
+            # True cost check
+            true_cost = dish.price + restaurant.avg_delivery_fee + restaurant.platform_fee_est
+            if intent.get("budget_max") and true_cost > intent["budget_max"]:
+                continue
+ 
+            score = score_dish_for_user(dish, profile)
+            first_bite = generate_first_bite(dish, profile)
+            links = build_order_links(restaurant, dish)
+ 
+            scored_dishes.append({
+                "score":       score,
+                "dish":        dish,
+                "restaurant":  restaurant,
+                "first_bite":  first_bite,
+                "true_cost":   true_cost,
+                "order_links": links
+            })
+ 
+    # 5. Sort by score, return top 3
+    top3 = sorted(scored_dishes, key=lambda x: x["score"], reverse=True)[:3]
+ 
+    return {
+        "recommendations": [format_recommendation(r) for r in top3],
+        "message_id": generate_id()
+    }
+
+SECTION 11
+Frontend — Chat UI & Components
+React component structure and the community submit form
+
+Key React Components
+Component
+File
+What it renders
+ChatInterface
+components/Chat/ChatInterface.jsx
+Full chat window — message list + input bar
+MessageBubble
+components/Chat/MessageBubble.jsx
+Single user or bot message bubble
+RecommendationCard
+components/Cards/RecommendationCard.jsx
+Dish name, First Bite text, true cost, order buttons
+OrderButtons
+components/Cards/OrderButtons.jsx
+Zomato / Swiggy / Maps buttons with click tracking
+TasteDNAQuiz
+components/TasteDNA/Quiz.jsx
+5-question onboarding quiz — card-based UI
+ProfileView
+components/TasteDNA/ProfileView.jsx
+Visual radar chart of user's Taste DNA axes
+SubmitSpot
+components/Community/SubmitSpot.jsx
+Community submission form with map pin drop
+PhotoUploader
+components/Community/PhotoUploader.jsx
+Drag-drop photo upload with preview and Cloudinary upload
+
+RecommendationCard Component
+// src/components/Cards/RecommendationCard.jsx
+ 
+import OrderButtons from './OrderButtons';
+ 
+export default function RecommendationCard({ rec }) {
+  const { dish, restaurant, score, first_bite, true_cost, order_links } = rec;
+ 
+  return (
+    <div className="border border-orange-200 rounded-2xl p-4 mb-3 bg-white shadow-sm">
+ 
+      {/* Match score badge */}
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-semibold text-orange-600 bg-orange-50 px-2 py-1 rounded-full">
+          {score}% Taste DNA match
+        </span>
+        {restaurant.is_community && (
+          <span className="text-xs text-green-700 bg-green-50 px-2 py-1 rounded-full">
+            Local spot
+          </span>
+        )}
+      </div>
+ 
+      {/* Dish + restaurant name */}
+      <h3 className="text-lg font-bold text-gray-900">{dish.name}</h3>
+      <p className="text-sm text-gray-500 mb-3">{restaurant.name} · {restaurant.area}</p>
+ 
+      {/* First Bite description */}
+      <div className="bg-amber-50 border-l-4 border-amber-400 px-3 py-2 rounded-r-lg mb-3">
+        <p className="text-xs font-semibold text-amber-700 mb-1">First Bite</p>
+        <p className="text-sm text-gray-700">{first_bite}</p>
+      </div>
+ 
+      {/* True cost */}
+      <p className="text-sm text-gray-600 mb-3">
+        True cost: <span className="font-semibold text-gray-900">₹{true_cost}</span>
+        <span className="text-gray-400 text-xs"> (incl. delivery + fees)</span>
+      </p>
+ 
+      {/* Order buttons */}
+      <OrderButtons links={order_links} dishId={dish.id} restaurantId={restaurant.id} />
+    </div>
+  );
+}
+
+Community Submit Form
+// src/components/Community/SubmitSpot.jsx
+ 
+import { useState } from 'react';
+import PhotoUploader from './PhotoUploader';
+import axios from 'axios';
+ 
+const SPOT_TYPES = ['Restaurant','Cafe','Dhaba','Street Stall','Home Kitchen','Food Cart'];
+const TASTE_TAGS = ['Spicy','Very Spicy','Mild','Tangy','Sweet','Sour','Rich',
+                    'Light','Crispy','Soft','Smoky','Oily','Street Style','Cheap & Filling'];
+ 
+export default function SubmitSpot() {
+  const [form, setForm] = useState({
+    spot_name:'', spot_type:'', area:'', address:'',
+    description:'', must_try_dish:'', dish_description:'',
+    approx_price:'', taste_tags:[], zomato_url:'', swiggy_url:''
+  });
+  const [photos, setPhotos]   = useState([]);
+  const [status, setStatus]   = useState(null);   // null | 'loading' | 'success' | 'error'
+  const [message, setMessage] = useState('');
+ 
+  const toggleTag = (tag) =>
+    setForm(f => ({
+      ...f,
+      taste_tags: f.taste_tags.includes(tag)
+        ? f.taste_tags.filter(t => t !== tag)
+        : [...f.taste_tags, tag]
+    }));
+ 
+  const handleSubmit = async () => {
+    if (!form.spot_name || !form.area || !form.must_try_dish || photos.length === 0) {
+      setMessage('Please fill all required fields and add at least one photo.');
+      return;
+    }
+    setStatus('loading');
+    const data = new FormData();
+    Object.entries(form).forEach(([k, v]) => data.append(k, Array.isArray(v) ? v.join(',') : v));
+    photos.forEach(p => data.append('photos', p));
+ 
+    try {
+      const res = await axios.post('/community/submit', data);
+      setStatus('success');
+      setMessage(res.data.message);
+    } catch (e) {
+      setStatus('error');
+      setMessage(e.response?.data?.error || 'Something went wrong.');
+    }
+  };
+ 
+  if (status === 'success') return (
+    <div className="p-6 bg-green-50 rounded-2xl text-center">
+      <p className="text-2xl mb-2">🎉</p>
+      <p className="font-bold text-green-800">Spot submitted!</p>
+      <p className="text-sm text-green-700 mt-1">{message}</p>
+    </div>
+  );
+ 
+  return (
+    <div className="p-4 max-w-lg mx-auto">
+      <h2 className="text-xl font-bold mb-4">Add a local spot</h2>
+ 
+      <input placeholder="Spot name *" value={form.spot_name}
+        onChange={e => setForm(f => ({...f, spot_name: e.target.value}))}
+        className="w-full border rounded-xl px-3 py-2 mb-3 text-sm" />
+ 
+      <select value={form.spot_type}
+        onChange={e => setForm(f => ({...f, spot_type: e.target.value}))}
+        className="w-full border rounded-xl px-3 py-2 mb-3 text-sm">
+        <option value="">Type of spot *</option>
+        {SPOT_TYPES.map(t => <option key={t}>{t}</option>)}
+      </select>
+ 
+      <input placeholder="Area / Locality *" value={form.area}
+        onChange={e => setForm(f => ({...f, area: e.target.value}))}
+        className="w-full border rounded-xl px-3 py-2 mb-3 text-sm" />
+ 
+      <textarea placeholder="Tell us about this place (what makes it special) *"
+        value={form.description} rows={3}
+        onChange={e => setForm(f => ({...f, description: e.target.value}))}
+        className="w-full border rounded-xl px-3 py-2 mb-3 text-sm" />
+ 
+      <input placeholder="Must-try dish name *" value={form.must_try_dish}
+        onChange={e => setForm(f => ({...f, must_try_dish: e.target.value}))}
+        className="w-full border rounded-xl px-3 py-2 mb-3 text-sm" />
+ 
+      <textarea placeholder="How would you describe how that dish tastes? *"
+        value={form.dish_description} rows={2}
+        onChange={e => setForm(f => ({...f, dish_description: e.target.value}))}
+        className="w-full border rounded-xl px-3 py-2 mb-3 text-sm" />
+ 
+      <input placeholder="Approx price per person (₹) *" type="number"
+        value={form.approx_price}
+        onChange={e => setForm(f => ({...f, approx_price: e.target.value}))}
+        className="w-full border rounded-xl px-3 py-2 mb-3 text-sm" />
+ 
+      {/* Taste tags */}
+      <p className="text-sm font-medium mb-2">Taste tags</p>
+      <div className="flex flex-wrap gap-2 mb-4">
+        {TASTE_TAGS.map(tag => (
+          <button key={tag} onClick={() => toggleTag(tag)}
+            className={`text-xs px-3 py-1 rounded-full border transition-colors ${
+              form.taste_tags.includes(tag)
+                ? 'bg-orange-500 text-white border-orange-500'
+                : 'bg-white text-gray-600 border-gray-300'
+            }`}>
+            {tag}
+          </button>
+        ))}
+      </div>
+ 
+      <input placeholder="Zomato link (optional)" value={form.zomato_url}
+        onChange={e => setForm(f => ({...f, zomato_url: e.target.value}))}
+        className="w-full border rounded-xl px-3 py-2 mb-3 text-sm" />
+ 
+      <PhotoUploader onPhotosChange={setPhotos} />
+ 
+      {message && <p className="text-sm text-red-600 mb-3">{message}</p>}
+ 
+      <button onClick={handleSubmit} disabled={status === 'loading'}
+        className="w-full bg-orange-500 text-white rounded-xl py-3 font-semibold mt-2">
+        {status === 'loading' ? 'Submitting...' : 'Submit spot'}
+      </button>
+    </div>
+  );
+}
+
+SECTION 12
+Delhi NCR Rollout Strategy
+Where to launch first, how to expand, and the neighbourhood logic
+
+Phase 1 Launch Zones — Why These Two
+Do not launch across all of Delhi NCR at once. Start with South Delhi and Gurugram only. These two zones have the highest delivery density, the most food-adventurous population, and the most frustration with generic recommendations.
+
+Zone
+Why start here
+Community feature angle
+South Delhi (Malviya Nagar, Hauz Khas, Saket, GK)
+High delivery usage, food-curious 22–35 demographic, diverse cuisine mix
+Independent cafes, home kitchens, pop-ups — gold mine
+Gurugram (Cyber City, Sector 29)
+Corporate crowd with lunch budgets, group ordering need is acute
+Dhabas near offices, canteen-style spots not on Zomato
+
+Expansion Timeline
+Month
+Area Added
+Target restaurants in DB
+1–2
+South Delhi + Gurugram
+2,000
+3–4
+Noida + Greater Noida
+3,500
+5–6
+East Delhi + Dwarka
+5,000
+7–8
+Old Delhi + Karol Bagh
+7,000
+9–12
+Full Delhi NCR + Faridabad
+12,000+
+Year 2
+Mumbai — start again with same playbook
+New city
+
+🗺️  Old Delhi — Handle Separately
+Old Delhi (Chandni Chowk, Jama Masjid area) is a special case. Most legendary spots have no Zomato presence, no addresses that GPS understands, and no menus. Launch it as a 'Community Only' zone — every listing comes from users. The Google Maps link is the order link. This is actually a feature, not a bug — it becomes the only app that actually surfaces Old Delhi's best food.
+
+SECTION 13
+Free Tools, Datasets & Services
+Complete list of everything you need — all free
+
+Category
+Tool / Service
+Free tier limit
+URL
+Database hosting
+Supabase
+500MB, unlimited API calls
+supabase.com
+Backend hosting
+Render.com
+1 free web service, 512MB RAM
+render.com
+Frontend hosting
+Vercel
+Unlimited deployments, custom domain
+vercel.com
+Photo storage
+Cloudinary
+2GB storage, 7,500 transforms/month
+cloudinary.com
+Email (notifications)
+Resend.com
+100 emails/day free
+resend.com
+Maps embed
+Google Maps Embed API
+Unlimited for embeds
+developers.google.com
+Places data
+Google Places API
+28,500 calls/month free
+developers.google.com
+NLP
+spaCy
+Fully open source, no limits
+spacy.io
+FlavorDB
+IIT Delhi FlavorDB
+Full dataset download
+flavordb.cs.iiit.ac.in
+Review data
+Yelp Open Dataset
+7M reviews, free Kaggle download
+kaggle.com
+Food data
+OpenFoodFacts
+3M products, open licence
+openfoodfacts.org
+Nutrition API
+USDA FoodData Central
+No key needed, unlimited
+fdc.nal.usda.gov
+Restaurant data
+Zomato Kaggle dataset
+Free download
+kaggle.com
+Containerisation
+Docker Desktop
+Free for personal/open source
+docker.com
+Version control
+GitHub
+Unlimited private repos
+github.com
+API testing
+Bruno / Postman
+Free client
+usebruno.com
+
+SECTION 14
+Earning & Monetisation Roadmap
+Honest timeline — when money becomes realistic and how
+
+⚠️  Honest Warning
+Do not think about money for at least the first 6 months. Build the product, get real users, prove the core loop works. Monetisation only makes sense once you have weekly active users who complete 2+ order redirects per week. Below is the honest timeline.
+
+Milestone-Based Monetisation
+When
+Milestone required
+Revenue method
+Realistic monthly
+Month 6–8
+500 WAU, 2+ order clicks/week each
+Restaurant 'Khao Featured' listings — ₹3,000–5,000/month per restaurant. Approach 10 independent South Delhi restaurants.
+₹30,000–50,000
+Month 8–10
+2,000 WAU, proven click-throughs
+Zomato / Swiggy affiliate program — typically 2–4% of GMV for referred orders. Apply directly.
+₹15,000–40,000
+Month 10–12
+5,000 WAU, group feature used
+Corporate lunch contracts — 1 Gurugram company (500 employees) is worth more than 1,000 individual users. Cold email HR managers.
+₹50,000–150,000
+Year 2
+50,000+ MAU, proven multi-city
+Series A / angel round. This user base + data asset + order volume is fundable.
+Investment, not revenue
+
+The Data Asset — The Real Long-Term Value
+After 12 months of real usage, Khao GPT will have something no competitor has: a dataset of verified taste preferences mapped to real meal outcomes at the individual level across Delhi NCR. This dataset is worth money independently of the product — cloud kitchens will pay to understand what flavour profiles are underserved in specific delivery zones. This is the B2B data play that opens up in Year 2.
+
+SECTION 15
+Week-by-Week Build Plan
+What to build, in what order, and what done looks like for each week
+
+Week
+Focus
+Deliverable / Done When
+1
+Project setup + DB
+Docker running locally, PostgreSQL schema created, FastAPI hello world endpoint responding
+2
+Restaurant seeder
+Google Places seeder runs for 4 South Delhi areas. 500+ restaurants in DB.
+3
+User auth + Taste DNA quiz
+Register/login working, JWT tokens, 5-question quiz saves profile to DB
+4
+Taste DNA scoring
+score_dish_for_user() tested with real dishes, returns sensible scores
+5
+First Bite generator
+generate_first_bite() returns personalised description for 20 test dishes
+6
+Main chat endpoint
+POST /chat takes text, returns top 3 recommendations with scores + first bite
+7
+Order Bridge
+Zomato + Swiggy + Maps links generated. Click tracking endpoint working.
+8
+React frontend — chat UI
+Chat interface running on localhost, can talk to backend, shows recommendation cards
+9
+Community submit feature
+SubmitSpot form works, photos upload to Cloudinary, saves to DB with pending status
+10
+Admin dashboard
+Simple admin page shows pending submissions, approve/reject buttons work
+11
+Rating loop
+Post-meal rating captured, Taste DNA updates after each rating, profile changes visibly
+12
+Deploy + first users
+Render + Vercel + Supabase deployed. Share with 20 real people in Delhi. Collect feedback.
+
+🚀  The Rule of Week 8
+If you do not have something real that 10 people can use by week 8, you are over-engineering. Cut features. Ship the simplest version that completes the loop: ask → recommend → order link → rate. Everything else is V2.
+
+Minimum Viable Product — The Exact Feature Set
+This is all you need for the first real version. Resist the urge to build more before shipping this:
+
+User registration and login
+5-question Taste DNA quiz
+Chat: type a craving, get 3 dish recommendations
+Each recommendation shows: dish name, restaurant, First Bite description, true cost
+Order buttons: Zomato link, Swiggy link, Maps link
+Post-meal rating (three buttons: Loved it / Okay / Did not enjoy)
+Community submit form with photo upload
+Admin page to approve or reject community submissions
+
+🍛  Final Note
+The best thing about Khao GPT is that the product gets better every day users use it — every rating sharpens Taste DNA, every community submission expands the database. Build the loop first. The intelligence compounds on top of it.

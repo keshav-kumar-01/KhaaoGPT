@@ -1,0 +1,350 @@
+﻿Starting Kaggle Zomato Delhi NCR Seeder...
+Reading from: DelhiNCR Restaurants.csv
+d:\KhaoGpt\backend\venv\Scr
+ipts\python.exe : 
+Traceback (most recent 
+call last):
+At line:1 char:1
++ d:\KhaoGpt\backend\venv\S
+cripts\python.exe 
+d:\KhaoGpt\backend\data_pi 
+...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+    + CategoryInfo         
+     : NotSpecified: (Tra  
+  ceback (most recent ca   
+ ll last)::String) [],     
+RemoteException
+    + FullyQualifiedErrorI 
+   d : NativeCommandError
+ 
+  File "D:\KhaoGpt\backend\
+venv\Lib\site-packages\sqla
+lchemy\engine\base.py", 
+line 1967, in 
+_exec_single_context
+    
+self.dialect.do_execute(
+  File "D:\KhaoGpt\backend\
+venv\Lib\site-packages\sqla
+lchemy\engine\default.py", 
+line 924, in do_execute
+    
+cursor.execute(statement, 
+parameters)
+  File "D:\KhaoGpt\backend\
+venv\Lib\site-packages\sqla
+lchemy\dialects\sqlite\aios
+qlite.py", line 146, in 
+execute
+    self._adapt_connection.
+_handle_exception(error)
+  File "D:\KhaoGpt\backend\
+venv\Lib\site-packages\sqla
+lchemy\dialects\sqlite\aios
+qlite.py", line 298, in 
+_handle_exception
+    raise error
+  File "D:\KhaoGpt\backend\
+venv\Lib\site-packages\sqla
+lchemy\dialects\sqlite\aios
+qlite.py", line 128, in 
+execute
+    self.await_(_cursor.exe
+cute(operation, 
+parameters))
+  File "D:\KhaoGpt\backend\
+venv\Lib\site-packages\sqla
+lchemy\util\_concurrency_py
+3k.py", line 131, in 
+await_only
+    return current.driver.s
+witch(awaitable)  # type: 
+ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^
+  File "D:\KhaoGpt\backend\
+venv\Lib\site-packages\sqla
+lchemy\util\_concurrency_py
+3k.py", line 196, in 
+greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "D:\KhaoGpt\backend\
+venv\Lib\site-packages\aios
+qlite\cursor.py", line 48, 
+in execute
+    await self._execute(sel
+f._cursor.execute, sql, 
+parameters)
+  File "D:\KhaoGpt\backend\
+venv\Lib\site-packages\aios
+qlite\cursor.py", line 40, 
+in _execute
+    return await 
+self._conn._execute(fn, 
+*args, **kwargs)
+           ^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^
+  File "D:\KhaoGpt\backend\
+venv\Lib\site-packages\aios
+qlite\core.py", line 132, 
+in _execute
+    return await future
+           ^^^^^^^^^^^^
+  File "D:\KhaoGpt\backend\
+venv\Lib\site-packages\aios
+qlite\core.py", line 115, 
+in run
+    result = function()
+             ^^^^^^^^^^
+sqlite3.OperationalError: 
+no such table: restaurants
+
+The above exception was 
+the direct cause of the 
+following exception:
+
+Traceback (most recent 
+call last):
+  File "d:\KhaoGpt\backend\
+data_pipeline\scrapers\kagg
+le_seeder.py", line 115, 
+in <module>
+    asyncio.run(seed_from_k
+aggle())
+  File "C:\Python312\Lib\as
+yncio\runners.py", line 
+194, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Python312\Lib\as
+yncio\runners.py", line 
+118, in run
+    return self._loop.run_u
+ntil_complete(task)
+           ^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^
+  File "C:\Python312\Lib\as
+yncio\base_events.py", 
+line 685, in 
+run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "d:\KhaoGpt\backend\
+data_pipeline\scrapers\kagg
+le_seeder.py", line 87, in 
+seed_from_kaggle
+    existing = await 
+db.execute(stmt)
+               
+^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\KhaoGpt\backend\
+venv\Lib\site-packages\sqla
+lchemy\ext\asyncio\session.
+py", line 461, in execute
+    result = await 
+greenlet_spawn(
+             
+^^^^^^^^^^^^^^^^^^^^^
+  File "D:\KhaoGpt\backend\
+venv\Lib\site-packages\sqla
+lchemy\util\_concurrency_py
+3k.py", line 201, in 
+greenlet_spawn
+    result = context.throw(
+*sys.exc_info())
+             ^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^
+  File "D:\KhaoGpt\backend\
+venv\Lib\site-packages\sqla
+lchemy\orm\session.py", 
+line 2351, in execute
+    return 
+self._execute_internal(
+           
+^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\KhaoGpt\backend\
+venv\Lib\site-packages\sqla
+lchemy\orm\session.py", 
+line 2236, in 
+_execute_internal
+    result: Result[Any] = c
+ompile_state_cls.orm_execut
+e_statement(
+                          ^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^
+  File "D:\KhaoGpt\backend\
+venv\Lib\site-packages\sqla
+lchemy\orm\context.py", 
+line 293, in 
+orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "D:\KhaoGpt\backend\
+venv\Lib\site-packages\sqla
+lchemy\engine\base.py", 
+line 1418, in execute
+    return meth(
+           ^^^^^
+  File "D:\KhaoGpt\backend\
+venv\Lib\site-packages\sqla
+lchemy\sql\elements.py", 
+line 515, in 
+_execute_on_connection
+    return connection._exec
+ute_clauseelement(
+           ^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^
+  File "D:\KhaoGpt\backend\
+venv\Lib\site-packages\sqla
+lchemy\engine\base.py", 
+line 1640, in 
+_execute_clauseelement
+    ret = 
+self._execute_context(
+          
+^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\KhaoGpt\backend\
+venv\Lib\site-packages\sqla
+lchemy\engine\base.py", 
+line 1846, in 
+_execute_context
+    return 
+self._exec_single_context(
+           
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\KhaoGpt\backend\
+venv\Lib\site-packages\sqla
+lchemy\engine\base.py", 
+line 1986, in 
+_exec_single_context
+    self._handle_dbapi_exce
+ption(
+  File "D:\KhaoGpt\backend\
+venv\Lib\site-packages\sqla
+lchemy\engine\base.py", 
+line 2353, in 
+_handle_dbapi_exception
+    raise sqlalchemy_except
+ion.with_traceback(exc_info
+[2]) from e
+  File "D:\KhaoGpt\backend\
+venv\Lib\site-packages\sqla
+lchemy\engine\base.py", 
+line 1967, in 
+_exec_single_context
+    
+self.dialect.do_execute(
+  File "D:\KhaoGpt\backend\
+venv\Lib\site-packages\sqla
+lchemy\engine\default.py", 
+line 924, in do_execute
+    
+cursor.execute(statement, 
+parameters)
+  File "D:\KhaoGpt\backend\
+venv\Lib\site-packages\sqla
+lchemy\dialects\sqlite\aios
+qlite.py", line 146, in 
+execute
+    self._adapt_connection.
+_handle_exception(error)
+  File "D:\KhaoGpt\backend\
+venv\Lib\site-packages\sqla
+lchemy\dialects\sqlite\aios
+qlite.py", line 298, in 
+_handle_exception
+    raise error
+  File "D:\KhaoGpt\backend\
+venv\Lib\site-packages\sqla
+lchemy\dialects\sqlite\aios
+qlite.py", line 128, in 
+execute
+    self.await_(_cursor.exe
+cute(operation, 
+parameters))
+  File "D:\KhaoGpt\backend\
+venv\Lib\site-packages\sqla
+lchemy\util\_concurrency_py
+3k.py", line 131, in 
+await_only
+    return current.driver.s
+witch(awaitable)  # type: 
+ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^
+  File "D:\KhaoGpt\backend\
+venv\Lib\site-packages\sqla
+lchemy\util\_concurrency_py
+3k.py", line 196, in 
+greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "D:\KhaoGpt\backend\
+venv\Lib\site-packages\aios
+qlite\cursor.py", line 48, 
+in execute
+    await self._execute(sel
+f._cursor.execute, sql, 
+parameters)
+  File "D:\KhaoGpt\backend\
+venv\Lib\site-packages\aios
+qlite\cursor.py", line 40, 
+in _execute
+    return await 
+self._conn._execute(fn, 
+*args, **kwargs)
+           ^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^
+  File "D:\KhaoGpt\backend\
+venv\Lib\site-packages\aios
+qlite\core.py", line 132, 
+in _execute
+    return await future
+           ^^^^^^^^^^^^
+  File "D:\KhaoGpt\backend\
+venv\Lib\site-packages\aios
+qlite\core.py", line 115, 
+in run
+    result = function()
+             ^^^^^^^^^^
+sqlalchemy.exc.OperationalE
+rror: 
+(sqlite3.OperationalError) 
+no such table: restaurants
+[SQL: SELECT 
+restaurants.id, 
+restaurants.name, 
+restaurants.area, 
+restaurants.address, 
+restaurants.lat, 
+restaurants.lng, 
+restaurants.cuisine_tags, 
+restaurants.zomato_url, 
+restaurants.swiggy_url, res
+taurants.google_maps_url, 
+restaurants.avg_cost_two, r
+estaurants.avg_delivery_fee
+, restaurants.platform_fee_
+est, 
+restaurants.rating_zomato, 
+restaurants.rating_swiggy, 
+restaurants.is_community, 
+restaurants.is_verified, 
+restaurants.source, 
+restaurants.is_active, 
+restaurants.created_at 
+FROM restaurants 
+WHERE restaurants.name = ? 
+AND restaurants.area = ?]
+[parameters: ("Rustom's", 
+'ITO, New Delhi')]
+(Background on this error 
+at: https://sqlalche.me/e/2
+0/e3q8)

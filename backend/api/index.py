@@ -13,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from database import init_db
-from config import APP_NAME, APP_VERSION, CORS_ORIGINS
+from config import APP_NAME, APP_VERSION
 from routers.auth_router import router as auth_router
 from routers.taste_dna import router as taste_dna_router
 from routers.chat import router as chat_router

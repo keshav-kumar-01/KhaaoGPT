@@ -1,8 +1,11 @@
 # Python environment
 backend/venv/
 backend/__pycache__/
-backend/*.pyc
+backend/**/__pycache__/
+*.pyc
 backend/*.db
+
+# Sensitive files
 backend/.env
 
 # Node.js
@@ -11,14 +14,13 @@ frontend/dist/
 frontend/.env
 frontend/.env.local
 
-# Others
+# OS / IDE
 .DS_Store
 *.log
 .gemini/
 .agent/
-temp/
-tmp/
-*.txt
+
+# Temp scripts
 backend/inspect_*.py
 backend/verify_deploy.py
 backend/test_db.py
